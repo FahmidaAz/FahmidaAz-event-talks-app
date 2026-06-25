@@ -17,6 +17,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const releasesList = document.getElementById('releases-list');
     const updateCount = document.getElementById('update-count');
     
+    // Theme Toggle Elements
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('theme-sun-icon');
+    const moonIcon = document.getElementById('theme-moon-icon');
+
+    // Theme Initialization
+    const initialTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', initialTheme);
+    updateThemeIcons(initialTheme);
+
+    function updateThemeIcons(theme) {
+        if (theme === 'light') {
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        } else {
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcons(newTheme);
+    });
+    
     // Detail Pane Elements
     const emptyState = document.getElementById('empty-state');
     const detailContent = document.getElementById('detail-content');
