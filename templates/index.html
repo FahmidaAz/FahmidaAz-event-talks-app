@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Cloud BigQuery Release Hub</title>
+    <meta name="description" content="View, filter, and share the latest Google Cloud BigQuery release notes and updates.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Styleheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="bg-blur-effect"></div>
+    <div class="bg-blur-effect-secondary"></div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#gradient-accent)" />
+                        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#gradient-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <defs>
+                            <linearGradient id="gradient-accent" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#38bdf8" />
+                                <stop offset="1" stop-color="#3b82f6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>BigQuery <span class="highlight">Release Hub</span></h1>
+            </div>
+            
+            <div class="actions-area">
+                <button id="refresh-btn" class="btn btn-secondary" title="Refresh Release Notes">
+                    <svg id="spinner-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- Controls & Filters Section -->
+        <section class="filters-section">
+            <div class="search-box">
+                <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="search-input" placeholder="Search releases..." aria-label="Search release notes">
+            </div>
+            <div class="filter-tabs" role="tablist" aria-label="Filter release notes by type">
+                <button class="filter-tab active" data-filter="All" role="tab" aria-selected="true">All</button>
+                <button class="filter-tab" data-filter="Feature" role="tab" aria-selected="false">Features</button>
+                <button class="filter-tab" data-filter="Changed" role="tab" aria-selected="false">Changed</button>
+                <button class="filter-tab" data-filter="Fixed" role="tab" aria-selected="false">Fixed</button>
+                <button class="filter-tab" data-filter="Deprecated" role="tab" aria-selected="false">Deprecated</button>
+                <button class="filter-tab" data-filter="Notice" role="tab" aria-selected="false">Notices</button>
+            </div>
+        </section>
+
+        <!-- Dashboard Layout -->
+        <div class="dashboard-grid">
+            <!-- Sidebar: List of notes -->
+            <aside class="sidebar-panel">
+                <div class="panel-header">
+                    <h2>Updates <span id="update-count" class="badge">0</span></h2>
+                </div>
+                <div class="list-container" id="releases-list" aria-busy="false">
+                    <!-- Cards will be dynamically inserted here -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Fetching latest release notes...</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Details Pane: Detailed view and Tweet action -->
+            <section class="detail-panel" id="detail-panel">
+                <!-- Fallback Empty State -->
+                <div id="empty-state" class="empty-state-view">
+                    <div class="empty-illustration">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <h3>No Release Selected</h3>
+                    <p>Select a release note from the list on the left to read details and share it.</p>
+                </div>
+
+                <!-- Actual Detail Content (hidden initially) -->
+                <div id="detail-content" class="detail-content-view hidden">
+                    <div class="detail-meta">
+                        <span id="detail-tag" class="type-badge">Feature</span>
+                        <div class="detail-date-container">
+                            <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span id="detail-date">June 24, 2026</span>
+                        </div>
+                    </div>
+                    <h2 id="detail-title">BigQuery Release Title</h2>
+                    
+                    <div id="detail-body" class="detail-body-content">
+                        <!-- HTML contents will be injected here -->
+                    </div>
+
+                    <div class="detail-actions">
+                        <a id="tweet-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-tweet">
+                            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                            <span>Tweet this update</span>
+                        </a>
+                        <button id="copy-btn" class="btn btn-secondary">
+                            <svg id="copy-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copy-btn-text">Copy text</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="app-footer-bar">
+        <p>BigQuery Release Hub &copy; 2026. Data sourced from GCP Release Feed.</p>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
