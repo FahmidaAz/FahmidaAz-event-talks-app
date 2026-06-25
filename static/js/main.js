@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // DOM Elements
     const refreshBtn = document.getElementById('refresh-btn');
+    const exportBtn = document.getElementById('export-btn');
     const spinnerIcon = document.getElementById('spinner-icon');
     const searchInput = document.getElementById('search-input');
     const filterTabs = document.querySelectorAll('.filter-tab');
@@ -119,13 +120,29 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <div class="card-meta">
                     <span class="type-badge ${lowerType}">${item.type}</span>
-                    <span class="card-date">${displayDate}</span>
+                    <div class="meta-right">
+                        <span class="card-date">${displayDate}</span>
+                        <button class="card-copy-btn" title="Copy card to clipboard" aria-label="Copy release note text">
+                            <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <h3>${escapeHtml(item.title)}</h3>
                 <div class="card-snippet">${escapeHtml(item.plain_text)}</div>
             `;
 
             card.addEventListener('click', () => selectRelease(item.id));
+            
+            // Card copy button logic
+            const cardCopyBtn = card.querySelector('.card-copy-btn');
+            cardCopyBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Avoid triggering card selection
+                copyCardToClipboard(cardCopyBtn, item.title, item.plain_text);
+            });
+            
             releasesList.appendChild(card);
         });
 
@@ -238,8 +255,69 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
+    // Copy single card text to clipboard
+    async function copyCardToClipboard(btn, title, bodyText) {
+        const fullShareText = `BigQuery Update: ${title}\n\n${bodyText}`;
+        const originalHTML = btn.innerHTML;
+        try {
+            await navigator.clipboard.writeText(fullShareText);
+            
+            btn.classList.add('copied');
+            btn.innerHTML = `
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            `;
+            
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    }
+
+    // Export current filtered list to CSV
+    function exportToCSV() {
+        if (filteredReleases.length === 0) {
+            alert('No releases to export.');
+            return;
+        }
+        
+        const headers = ['ID', 'Title', 'Date', 'Type', 'Plain Text'];
+        const rows = filteredReleases.map(item => [
+            item.id,
+            item.title,
+            item.updated,
+            item.type,
+            item.plain_text
+        ]);
+        
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(val => {
+                const escaped = (val || '').toString().replace(/"/g, '""');
+                return `"${escaped}"`;
+            }).join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        
+        const dateStr = new Date().toISOString().slice(0, 10);
+        link.setAttribute('download', `bigquery_releases_${dateStr}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     // Bind event handlers
     refreshBtn.addEventListener('click', fetchReleases);
+    exportBtn.addEventListener('click', exportToCSV);
     
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase().trim();
