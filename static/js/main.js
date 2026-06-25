@@ -220,7 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
         copyBtn.onclick = () => copyTextToClipboard(release.title, release.plain_text);
         
         // Scroll detail view to top
-        document.getElementById('detail-panel').scrollTop = 0;
+        const detailPanel = document.getElementById('detail-panel');
+        detailPanel.scrollTop = 0;
+        
+        // If viewport is mobile/tablet, smoothly scroll the detail panel into view
+        if (window.innerWidth < 992) {
+            detailPanel.scrollIntoView({ behavior: 'smooth' });
+        }
     }
 
     // Reset details view
